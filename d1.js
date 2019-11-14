@@ -1,6 +1,6 @@
 "use strict";
 const fs = require("fs");
-
+const _ = require("lodash");
 /*
 You're airdropped near Easter Bunny Headquarters in a city somewhere. "Near", unfortunately, is as close as you can get -
 the instructions on the Easter Bunny Recruiting Document the Elves intercepted start here, and nobody had time to work them out further.
@@ -20,14 +20,37 @@ How many blocks away is Easter Bunny HQ?
 */
 
 const input = fs.readFileSync("./input/d1.txt").toString();
-let x = 0, y = 0;
-console.log(input.split(", ").forEach((step) => {
-  const [direction, len] = step.split("");
-  switch (direction) {
-    case "L": x -= len;
-    case "R": x += len;
-      case "U"
 
-      
-  } 
+const directionMovements = {
+  "N": {xd: 0, yd: 1},
+  "E": {xd: 1, yd: 0},
+  "S": {xd: 0, yd: -1},
+  "W": {xd: -1, yd: 0}
+}
+const directions = Object.keys(directionMovements); 
+let x = 0, y = 0;
+let direction = "N";
+let visited = [];
+let firstVisitedTwice;
+input.split(", ").forEach((step) => {
+  const turn = step.slice(0, 1);
+  const len = Number(step.slice(1));
+  const directionIndex = directions.indexOf(direction);
+  let nextDirectionIndex = (directionIndex + directions.length + (turn === "L" ? -1 : 1)) % directions.length;
+  direction = directions[nextDirectionIndex];
+  const xd = directionMovements[direction].xd * len;
+  const yd = directionMovements[direction].yd * len;
+  const visit = (vX, vY) => {
+    const coord = `${vX} ${vY}`;
+    if (!firstVisitedTwice && visited[coord]) firstVisitedTwice = {x: vX, y: vY};
+    else visited[coord] = true; 
+  }
+  _.range(x, x + xd).forEach((xStep) => visit(xStep, y));
+  _.range(y, y + yd).forEach((yStep) => visit(x, yStep));
+  x += xd;
+  y += yd;
+  //console.log(x, y, visited)
 });
+
+console.log("Solution 1:", Math.abs(x) + Math.abs(y));
+console.log("Solution 2:", Math.abs(firstVisitedTwice.x) + Math.abs(firstVisitedTwice.y));
